@@ -251,7 +251,7 @@ def delete_resource(pk):
 
 @shared_task
 @transaction.atomic
-def delete_resource_controller(appinstance):
+def delete_resource_permanently(appinstance):
 
     parameters = appinstance.parameters
     
@@ -265,6 +265,8 @@ def delete_resource_controller(appinstance):
         appinstance.state = "FailedToDelete"
 
     release_name(appinstance)
+
+    appinstance.delete()
 
 @app.task
 @transaction.atomic

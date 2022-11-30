@@ -1,12 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from apps.tasks import delete_resource_controller
 from tagulous.models import TagField
 
 from models.models import Model
 from projects.models import Project
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
+
 
 class AppPermission(models.Model):
     appinstance = models.OneToOneField(
@@ -86,11 +84,6 @@ class AppInstance(models.Model):
 
     def __str__(self):
         return str(self.name)+' ({})-{}-{}-{}'.format(self.state, self.owner, self.app.name, self.project)
-
-@receiver(pre_delete, sender=AppInstance)
-def on_app_instance_delete(sender, instance, **kwargs):
-    
-    delete_resource_controller.delay(instance)
 
 
 class AppStatus(models.Model):
