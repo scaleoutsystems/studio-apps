@@ -32,8 +32,10 @@ jobs:
       - name: virtual studio
         run: |
           mkdir studio
-      - uses: actions/checkout@v2
-        working-directory: ./studio
+      - name: checkout 
+        uses: actions/checkout@v2
+        with:
+          path: ./studio
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
