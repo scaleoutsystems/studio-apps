@@ -1,6 +1,7 @@
 import time
 from datetime import datetime, timedelta
 
+import django.core.exceptions as ex
 import requests
 from django.apps import apps
 from django.conf import settings
@@ -112,7 +113,6 @@ def filtered(request, user, project, category):
     menu = dict()
 
     template = "new.html"
-    import django.core.exceptions as ex
 
     try:
         cat_obj = AppCategories.objects.get(slug=category)
