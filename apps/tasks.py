@@ -251,25 +251,22 @@ def delete_resource(pk):
 
 @shared_task
 @transaction.atomic
-def delete_resource_permanently(pk):
-    appinstance = AppInstance.objects.get(pk=pk)
+def delete_resource_permanently(appinstance):
 
-    if appinstance and appinstance.state != "Deleted":
+    parameters = appinstance.parameters
+    
+    # Invoke chart controller
+    results = controller.delete(parameters)
 
-        parameters = appinstance.parameters
-        
-        # Invoke chart controller
-        results = controller.delete(parameters)
+    if not (results.returncode == 0 or 'release: not found' in results.stderr.decode('utf-8')):
+        status = AppStatus(appinstance=appinstance)
+        status.status_type = "FailedToDelete"
+        status.save()
+        appinstance.state = "FailedToDelete"
 
-        if not (results.returncode == 0 or 'release: not found' in results.stderr.decode('utf-8')):
-            status = AppStatus(appinstance=appinstance)
-            status.status_type = "FailedToDelete"
-            status.save()
-            appinstance.state = "FailedToDelete"
+    release_name(appinstance)
 
-        release_name(appinstance)
-
-        appinstance.delete()
+    appinstance.delete()
 
 @app.task
 @transaction.atomic
