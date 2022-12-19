@@ -169,7 +169,7 @@ def post_create_hooks(instance):
 def release_name(instance):
     # Free up release name (if reserved)
     rel_names = instance.releasename_set.all()
-    
+
     for rel_name in rel_names:
         rel_name.status = "active"
         rel_name.app = None
@@ -275,16 +275,20 @@ def delete_resource(pk):
             status.save()
             appinstance.state = "FailedToDelete"
 
+
 @shared_task
 @transaction.atomic
 def delete_resource_permanently(appinstance):
 
     parameters = appinstance.parameters
-    
+
     # Invoke chart controller
     results = controller.delete(parameters)
 
-    if not (results.returncode == 0 or 'release: not found' in results.stderr.decode('utf-8')):
+    if not (
+        results.returncode == 0
+        or "release: not found" in results.stderr.decode("utf-8")
+    ):
         status = AppStatus(appinstance=appinstance)
         status.status_type = "FailedToDelete"
         status.save()
@@ -293,6 +297,7 @@ def delete_resource_permanently(appinstance):
     release_name(appinstance)
 
     appinstance.delete()
+
 
 @app.task
 @transaction.atomic
