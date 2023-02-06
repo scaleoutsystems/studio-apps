@@ -282,6 +282,14 @@ def create(request, user, project, app_slug, data=[], wait=False, call=False):
             data, project, app_sett, user.username
         )
 
+        for app_dep in app_deps:
+            permissions_arr = AppPermission.objects.filter(
+                projects__id=project.id, appinstance=app_dep
+            )
+            if permissions_arr.count() == 0:
+                raise Exception(
+                    "Not authorized to use specified app dependency"
+                )
         if data.get("app_action") == "Create":
             permission = AppPermission(name=app_name)
             permission.save()
