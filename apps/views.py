@@ -14,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from guardian.decorators import permission_required_or_403
 
 from .generate_form import generate_form
-from .helpers import create_instance_params
+from .helpers import can_access_app_instance, create_instance_params
 from .models import AppCategories, AppInstance, AppPermission, Apps, AppStatus
 from .serialize import serialize_app
 from .tasks import delete_resource, deploy_resource
@@ -283,13 +283,13 @@ def create(request, user, project, app_slug, data=[], wait=False, call=False):
         )
 
         for app_dep in app_deps:
-            permissions_arr = AppPermission.objects.filter(
-                projects__id=project.id, appinstance=app_dep
-            )
-            if permissions_arr.count() == 0:
+            authorized = can_access_app_instance(app_dep, user, project)
+
+            if not authorized:
                 raise Exception(
                     "Not authorized to use specified app dependency"
                 )
+
         if data.get("app_action") == "Create":
             permission = AppPermission(name=app_name)
             permission.save()
