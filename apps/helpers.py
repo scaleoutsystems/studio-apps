@@ -2,8 +2,6 @@ import uuid
 
 from django.conf import settings
 
-from .models import AppPermission
-
 
 def create_instance_params(instance, action="create"):
     print("HELPER - CREATING INSTANCE PARAMS")
@@ -50,21 +48,15 @@ def create_instance_params(instance, action="create"):
 
 
 def can_access_app_instance(app_instance, user, project):
-    permissions_arr = AppPermission.objects.filter(appinstance=app_instance)
-
     authorized = False
 
-    for permission in permissions_arr:
-        if app_instance.access == "public":
+    if app_instance.access == "public":
+        authorized = True
+    elif app_instance.access == "project":
+        if user.has_perm("can_view_project", project):
             authorized = True
-            break
-        elif app_instance.access == "project":
-            if any(p.id == project.id for p in permission.projects.all()):
-                authorized = True
-                break
-        else:
-            if any(u.id == user.id for u in permission.users.all()):
-                authorized = True
-                break
+    else:
+        if user.has_perm("can_access_app", app_instance):
+            authorized = True
 
     return authorized
